@@ -18,7 +18,7 @@ rand = { version = "0.8.4", default-features = false }
 bitcoin_hashes = { version = "0.13.0", default-features = false }
 
 [dev-dependencies]
-hex = "0.4.3"
+hex = { package = "hex-conservative", version = "0.2.0" }
 
 [lib]
 name = "bip324"

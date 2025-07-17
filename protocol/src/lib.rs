@@ -151,8 +151,6 @@ pub mod futures;
 mod handshake;
 #[cfg(feature = "std")]
 pub mod io;
-#[cfg(feature = "std")]
-pub mod serde;
 
 use core::fmt;
 
@@ -356,7 +354,7 @@ impl SessionKeyMaterial {
         let ecdh_sk = ElligatorSwift::shared_secret(a, b, secret, party, Some(data));
 
         let ikm_salt = "bitcoin_v2_shared_secret".as_bytes();
-        let magic = network.magic().to_bytes();
+        let magic = p2p::Magic::from_params(network).unwrap().to_bytes();
         let salt = [ikm_salt, &magic].concat();
         let hk = Hkdf::<sha256::Hash>::new(salt.as_slice(), ecdh_sk.as_secret_bytes());
         let mut session_id = [0u8; 32];
@@ -439,6 +437,12 @@ impl PacketType {
 pub struct InboundCipher {
     length_cipher: FSChaCha20,
     packet_cipher: FSChaCha20Poly1305,
+}
+
+impl core::fmt::Debug for InboundCipher {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "inbound cipher")
+    }
 }
 
 impl InboundCipher {
@@ -613,6 +617,12 @@ impl InboundCipher {
 pub struct OutboundCipher {
     length_cipher: FSChaCha20,
     packet_cipher: FSChaCha20Poly1305,
+}
+
+impl core::fmt::Debug for OutboundCipher {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "outbound cipher")
+    }
 }
 
 impl OutboundCipher {

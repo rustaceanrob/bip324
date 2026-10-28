@@ -242,7 +242,7 @@ async fn async_protocol_with_traffic_shaping() {
 }
 
 /// Fire up a managed regtest bitcoind process.
-fn regtest_process() -> bitcoind::Node {
+fn regtest_process() -> bitcoind::BitcoinD {
     // Pull executable from auto-downloaded location, unless
     // environment variable override is present. Some operating
     // systems (e.g. NixOS) don't like the downloaded executable
@@ -253,5 +253,5 @@ fn regtest_process() -> bitcoind::Node {
     let mut conf = bitcoind::Conf::default();
     conf.args.push("-v2transport=1");
     conf.p2p = bitcoind::P2P::Yes;
-    bitcoind::Node::with_conf(exe_path, &conf).unwrap()
+    bitcoind::BitcoinD::with_conf(exe_path, &conf).unwrap()
 }

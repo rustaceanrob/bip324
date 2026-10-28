@@ -5,7 +5,7 @@ authors = ["Nick Johnson <nick@yonson.dev>", "Robert Netzke <rustaceanrob@proton
 edition = "2021"
 license = "CC0-1.0"
 description = "Encrypted transport for the bitcoin P2P protocol as specified by BIP 324"
-repository = "https://github.com/rust-bitcoin/bip324"
+repository = "https://git.rust-bitcoin.org/rust-bitcoin/bip324"
 readme = "README.md"
 rust-version = "1.63.0"
 
@@ -20,7 +20,7 @@ std = ["secp256k1/rand-std", "bitcoin_hashes/std", "chacha20-poly1305/std"]
 # depending on which version of tokio is selected by the caller.
 tokio = { version = "1", default-features = false, optional = true, features = ["io-util"] }
 secp256k1 = { version = "0.29.0", default-features = false }
-# Depending on hashes directly for HKDF, can drop this and 
+# Depending on hashes directly for HKDF, can drop this and
 # use the re-exported version in bitcoin > 0.32.*.
 bitcoin_hashes = { version =">=0.15.0, <0.17.0", default-features = false }
 chacha20-poly1305 = { version = "0.1.1", default-features = false }

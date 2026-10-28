@@ -1,0 +1,29 @@
+name: Update Lockfiles
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Weekly on Monday at 00:00 UTC.
+  workflow_dispatch:     # Allow manual triggering.
+
+jobs:
+  update-lockfiles:
+    runs-on: debian-trixie
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
+      - uses: https://git.rust-bitcoin.org/rust-bitcoin/rust-bitcoin-maintainer-tools/actions/setup-rbmt@0ce7152ca25bb7d7892b7d0128cc6b1be4630038
+      - name: Configure git
+        run: |
+          git config user.name "RBMT Bot"
+          git config user.email "bot@example.com"
+      - name: Update lockfiles
+        run: |
+          cargo rbmt lock
+          if git add . && git commit -m "Update lockfiles"; then
+            echo "LOCKFILE_UPDATE=true" >> $FORGEJO_ENV
+          fi
+      - name: Create pull request
+        if: ${{ env.LOCKFILE_UPDATE == 'true' }}
+        run: |
+          git push origin HEAD:refs/for/main/update-lockfiles \
+            -o title="Update lockfiles" \
+            -o description="Automated update to lockfiles by update-lockfiles workflow."

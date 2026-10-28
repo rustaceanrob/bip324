@@ -2,6 +2,7 @@
 
 #[cfg(feature = "std")]
 const PORT: u16 = 18444;
+#[cfg(feature = "std")]
 const MAGIC: [u8; 4] = [0xF9, 0xBE, 0xB4, 0xD9];
 
 #[test]

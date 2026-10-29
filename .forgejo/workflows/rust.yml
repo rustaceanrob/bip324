@@ -41,3 +41,10 @@ jobs:
           persist-credentials: false
       - uses: https://git.rust-bitcoin.org/rust-bitcoin/rust-bitcoin-maintainer-tools/actions/setup-rbmt@0ce7152ca25bb7d7892b7d0128cc6b1be4630038
       - run: cargo rbmt fmt --check
+
+  Integration:
+    runs-on: debian-trixie
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
+      - uses: https://git.rust-bitcoin.org/rust-bitcoin/rust-bitcoin-maintainer-tools/actions/setup-rbmt@0ce7152ca25bb7d7892b7d0128cc6b1be4630038
+      - run: cargo rbmt integration

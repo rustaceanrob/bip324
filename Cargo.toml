@@ -1,6 +1,6 @@
 [workspace]
 members = ["protocol", "traffic"]
-exclude = ["fuzz"]
+exclude = ["fuzz", "protocol/bitcoind-tests", "traffic/bitcoind-tests"]
 resolver = "2"
 
 [workspace.metadata]

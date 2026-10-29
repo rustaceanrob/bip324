@@ -119,7 +119,6 @@ fn sync_protocol_with_traffic_shaping() {
 }
 
 #[tokio::test]
-#[cfg(feature = "tokio")]
 async fn async_protocol_with_traffic_shaping() {
     use std::{
         net::{IpAddr, Ipv4Addr, SocketAddr},

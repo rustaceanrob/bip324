@@ -1,0 +1,21 @@
+[package]
+name = "bitcoind-tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[package.metadata.rbmt.toolchains]
+stable = "1.99.1"
+
+[features]
+"latest" = ["bitcoind/30_2"]
+
+[dependencies]
+bip324-traffic = { path = "..", features = ["tokio"] }
+bip324 = { path = "../../protocol", features = ["tokio"] }
+bitcoind = { version = "0.43.2", features = ["download"] }
+bitcoin = { git = "https://github.com/rust-bitcoin/rust-bitcoin", rev = "16cc257c3695dea0e7301a5fa9cab44b8ed60598" }
+p2p = { package = "bitcoin-p2p-messages", git = "https://github.com/rust-bitcoin/rust-bitcoin", rev = "16cc257c3695dea0e7301a5fa9cab44b8ed60598" }
+tokio = { version = "1", features = ["sync", "time", "rt", "macros", "net", "io-util"] }

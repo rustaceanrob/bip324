@@ -97,7 +97,7 @@ where
     ///     .with_decoy_strategy(DecoyStrategy::Random);
     ///
     /// let mut protocol = ShapedProtocol::new(
-    ///     p2p::Magic::BITCOIN,
+    ///     [0xF9, 0xBE, 0xB4, 0xD9],
     ///     Role::Initiator,
     ///     config,
     ///     reader,

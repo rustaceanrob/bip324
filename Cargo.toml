@@ -1,4 +1,9 @@
 [workspace]
 members = ["protocol", "traffic"]
-exclude = ["fuzz"]
+exclude = ["fuzz", "protocol/bitcoind-tests", "traffic/bitcoind-tests"]
 resolver = "2"
+
+[workspace.metadata]
+rbmt.version = "0.5.4"
+rbmt.toolchains = { nightly = "nightly-2026-10-24", stable = "1.99.1" }
+rbmt.lock.lockfiles = [ "minimal", "maximum" ]

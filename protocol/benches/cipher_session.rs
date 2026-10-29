@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: CC0-1.0
 
+#![cfg(feature = "std")]
 #![feature(test)]
 
 extern crate test;

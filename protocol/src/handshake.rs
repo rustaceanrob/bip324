@@ -405,10 +405,11 @@ impl Handshake<SentVersion> {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```rust,no_run
+    /// # #[cfg(feature = "std")]
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use bip324::{Handshake, GarbageResult, SentVersion};
     /// # use bip324::Role;
-    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let mut handshake = Handshake::new(p2p::Magic::BITCOIN, Role::Initiator)?;
     /// # // ... complete handshake to SentVersion state ...
     /// # let handshake: Handshake<SentVersion> = todo!();
@@ -434,6 +435,8 @@ impl Handshake<SentVersion> {
     /// }
     /// # Ok(())
     /// # }
+    /// # #[cfg(not(feature = "std"))]
+    /// # fn main() {}
     /// ```
     pub fn receive_garbage<'a>(self, input_buffer: &'a [u8]) -> Result<GarbageResult<'a>, Error> {
         match self.split_garbage(input_buffer) {
@@ -525,10 +528,11 @@ impl<'a> Handshake<ReceivedGarbage<'a>> {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```rust,no_run
+    /// # #[cfg(feature = "std")]
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use bip324::{Handshake, VersionResult, ReceivedGarbage, NUM_LENGTH_BYTES};
     /// # use bip324::Role;
-    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let mut handshake = Handshake::new(p2p::Magic::BITCOIN, Role::Initiator)?;
     /// # // ... complete handshake to ReceivedGarbage state ...
     /// # let mut handshake: Handshake<ReceivedGarbage> = todo!();
@@ -540,7 +544,7 @@ impl<'a> Handshake<ReceivedGarbage<'a>> {
     /// loop {
     ///     // Read packet length (first 3 bytes)
     ///     let packet_len = handshake.decrypt_packet_len(
-    ///         remaining_data[..NUM_LENGTH_BYTES].try_into()?
+    ///         remaining_data[..NUM_LENGTH_BYTES].try_into().unwrap()
     ///     )?;
     ///     
     ///     // Extract packet data (excluding length prefix)
@@ -561,6 +565,8 @@ impl<'a> Handshake<ReceivedGarbage<'a>> {
     /// }
     /// # Ok(())
     /// # }
+    /// # #[cfg(not(feature = "std"))]
+    /// # fn main() {}
     /// ```
     pub fn receive_version(mut self, input_buffer: &mut [u8]) -> Result<VersionResult<'a>, Error> {
         // Take the garbage on first call to ensure AAD is only used once.

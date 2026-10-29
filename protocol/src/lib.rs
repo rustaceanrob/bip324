@@ -14,11 +14,12 @@
 //! ## Synchronous API (requires `std` feature)
 //!
 //! ```no_run
+//! # #[cfg(feature = "std")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use bip324::io::{Protocol, Payload};
 //! use std::net::TcpStream;
 //! use std::io::BufReader;
 //!
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let stream = TcpStream::connect("127.0.0.1:8333")?;
 //!
 //! // Wrap reader in BufReader for efficiency (protocol makes many small reads)
@@ -43,12 +44,14 @@
 //! println!("Received {} bytes", response.contents().len());
 //! # Ok(())
 //! # }
+//! # #[cfg(not(feature = "std"))]
+//! # fn main() {}
 //! ```
 //!
 //! ## Asynchronous API (requires `tokio` feature)
 //!
 //! ```no_run
-//! # #[cfg(feature = "tokio")]
+//! # #[cfg(all(feature = "tokio", feature = "std"))]
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use bip324::futures::Protocol;
@@ -80,6 +83,8 @@
 //! println!("Received {} bytes", response.contents().len());
 //! # Ok(())
 //! # }
+//! # #[cfg(not(all(feature = "tokio", feature = "std")))]
+//! # fn main() {}
 //! ```
 //!
 //! # Performance Considerations

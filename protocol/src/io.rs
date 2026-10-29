@@ -37,7 +37,7 @@
 //! )?;
 //!
 //! // Send and receive encrypted messages
-//! protocol.write(&Payload::genuine(b"Hello, world!"))?;
+//! protocol.write(&Payload::genuine(*b"Hello, world!"))?;
 //! let response = protocol.read()?;
 //! println!("Received {} bytes", response.contents().len());
 //! # Ok(())

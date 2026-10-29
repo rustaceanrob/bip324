@@ -22,6 +22,9 @@ jobs:
         with:
           persist-credentials: false
       - uses: https://git.rust-bitcoin.org/rust-bitcoin/rust-bitcoin-maintainer-tools/actions/setup-rbmt@0ce7152ca25bb7d7892b7d0128cc6b1be4630038
+      # Hack to get around MSRV 1.63.0 toolchain already installed on image.
+      - if: ${{ matrix.toolchain == 'msrv' }}
+        run: rustup target add thumbv7m-none-eabi --toolchain $(cargo rbmt toolchains --msrv)
       - run: cargo rbmt test --toolchain ${{ matrix.toolchain }} --lockfile ${{ matrix.dep }}
 
   Lint:

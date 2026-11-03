@@ -21,6 +21,13 @@ jobs:
           if git add . && git commit -m "Update nightly toolchain"; then
             echo "TOOLCHAIN_UPDATE=true" >> $FORGEJO_ENV
           fi
+      - name: Update fuzz nightly version and commit
+        working-directory: fuzz
+        run: |
+          cargo rbmt toolchains --update-nightly
+          if git add . && git commit -m "fuzz: update nightly toolchain"; then
+            echo "TOOLCHAIN_UPDATE=true" >> $FORGEJO_ENV
+          fi
       - name: Update stable version and commit
         run: |
           cargo rbmt toolchains --update-stable

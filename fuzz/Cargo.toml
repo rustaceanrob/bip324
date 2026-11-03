@@ -7,6 +7,10 @@ edition = "2021"
 [package.metadata]
 cargo-fuzz = true
 
+[package.metadata.rbmt]
+tools.cargo-fuzz = "0.13.2"
+toolchains.nightly = "nightly-2026-10-24"
+
 [dependencies]
 libfuzzer-sys = "0.4"
 bip324 = { path = "../protocol" }

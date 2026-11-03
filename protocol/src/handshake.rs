@@ -11,7 +11,7 @@ use core::borrow::Borrow;
 
 use secp256k1::{
     ellswift::{ElligatorSwift, ElligatorSwiftParty},
-    PublicKey, Secp256k1, SecretKey, Signing,
+    Secp256k1, SecretKey, Verification,
 };
 
 use crate::{
@@ -83,7 +83,7 @@ pub enum VersionResult<'a> {
 /// The handshake progresses through multiple states, enforcing the protocol sequence at compile time.
 ///
 /// 1. `Initialized` - Initial state with local secret materials.
-/// 2. `SentKey` - After sending local public key and optional garbage.  
+/// 2. `SentKey` - After sending local public key and optional garbage.
 /// 3. `ReceivedKey` - After receiving remote's public key.
 /// 4. `SentVersion` - After sending local garbage terminator and version packet.
 /// 5. Complete - After receiving and authenticating remote's garbage, garbage terminator, decoy packets, and version packet.
@@ -114,12 +114,12 @@ impl Handshake<Initialized> {
     #[cfg(feature = "std")]
     pub fn new(magic: impl Borrow<[u8; 4]>, role: Role) -> Result<Self, Error> {
         let mut rng = secp256k1::rand::thread_rng();
-        let curve = Secp256k1::signing_only();
+        let curve = Secp256k1::new();
         Self::new_with_rng(magic, role, &mut rng, &curve)
     }
 
     /// Initialize a V2 transport handshake with remote peer using supplied RNG and secp context.
-    pub fn new_with_rng<C: Signing>(
+    pub fn new_with_rng<C: Verification>(
         magic: impl Borrow<[u8; 4]>,
         role: Role,
         rng: &mut impl FillBytes,
@@ -129,8 +129,12 @@ impl Handshake<Initialized> {
         rng.fill_bytes(&mut secret_key_buffer);
         debug_assert_ne!([0u8; 32], secret_key_buffer);
         let sk = SecretKey::from_slice(&secret_key_buffer)?;
-        let pk = PublicKey::from_secret_key(curve, &sk);
-        let es = ElligatorSwift::from_pubkey(pk);
+        // Randomize the ElligatorSwift encoding. Without this, the 64-byte
+        // encoding is a deterministic function of the public key and the
+        // bytestream is trivially distinguishable from uniform random bytes.
+        let mut ellswift_rand = [0u8; 32];
+        rng.fill_bytes(&mut ellswift_rand);
+        let es = ElligatorSwift::from_seckey(curve, sk, Some(ellswift_rand));
 
         let point = EcdhPoint {
             secret_key: sk,
@@ -419,7 +423,7 @@ impl Handshake<SentVersion> {
     /// loop {
     ///     // Read more network data...
     ///     // network_buffer.extend_from_slice(&new_data);
-    ///     
+    ///
     ///     match handshake.receive_garbage(&network_buffer)? {
     ///         GarbageResult::FoundGarbage { handshake: next_state, consumed_bytes } => {
     ///             // Success! Process remaining data for version packets
@@ -546,11 +550,11 @@ impl<'a> Handshake<ReceivedGarbage<'a>> {
     ///     let packet_len = handshake.decrypt_packet_len(
     ///         remaining_data[..NUM_LENGTH_BYTES].try_into().unwrap()
     ///     )?;
-    ///     
+    ///
     ///     // Extract packet data (excluding length prefix)
     ///     let mut packet = remaining_data[NUM_LENGTH_BYTES..NUM_LENGTH_BYTES + packet_len].to_vec();
     ///     remaining_data = &remaining_data[NUM_LENGTH_BYTES + packet_len..];
-    ///     
+    ///
     ///     // Process the packet
     ///     match handshake.receive_version(&mut packet)? {
     ///         VersionResult::Complete { cipher } => {
@@ -909,5 +913,22 @@ mod tests {
 
         let result = handshake.receive_key(v1_testnet_key);
         assert!(matches!(result, Err(Error::V1Protocol)));
+    }
+
+    #[test]
+    fn test_ellswift_encoding_is_not_all_zero_rnd32() {
+        let handshake = Handshake::<Initialized>::new(MAGIC, Role::Initiator).unwrap();
+        let mut buffer = vec![0u8; NUM_ELLIGATOR_SWIFT_BYTES];
+        handshake.send_key(None, &mut buffer).unwrap();
+
+        let encoding: [u8; NUM_ELLIGATOR_SWIFT_BYTES] = buffer[..].try_into().unwrap();
+        let pk = secp256k1::PublicKey::from_ellswift(ElligatorSwift::from_array(encoding));
+
+        // `ElligatorSwift::from_pubkey` is the `rnd32 = [0u8; 32]` case.
+        assert_ne!(
+            ElligatorSwift::from_pubkey(pk).to_array(),
+            encoding,
+            "handshake emitted the deterministic all-zero-rnd32 encoding"
+        );
     }
 }

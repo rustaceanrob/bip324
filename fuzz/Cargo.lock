@@ -16,7 +16,7 @@ checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
 name = "bip324"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "bitcoin_hashes",
  "chacha20-poly1305",

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v0.11.1]
+
 * [BREAKING] Fix a fingerprintable v2 handshake: the local ElligatorSwift key encoding was derived deterministically from the public key (an all-zero `rnd32` via `ElligatorSwift::from_pubkey`), so the first 64 bytes of a connection revealed that it came from this crate, allowing a passive observer to identify and block BIP324 traffic. `Handshake::new_with_rng` now requires a `Verification` secp256k1 context instead of `Signing`, since the randomized encoding uses `ElligatorSwift::from_seckey`; `Secp256k1::new()` satisfies both and callers passing `Secp256k1::signing_only()` must switch. The context bound will be removed entirely when upgrading to `secp256k1` 0.33.
 
 ## [v0.11.0]
@@ -61,7 +63,8 @@ Major breaking changes!
 * Aync read functions should now be cancellation safe.
 * The high level `Io` variant of the `ProtocolError` exposes if it is worth retrying with the V1 protocol with the new `ProtocolFailureSuggestion` type.
 
-[Unreleased]: https://github.com/rust-bitcoin/bip324/compare/protocol-v0.11.0...HEAD
+[Unreleased]: https://github.com/rust-bitcoin/bip324/compare/protocol-v0.11.1...HEAD
+[v0.11.1]: https://github.com/rust-bitcoin/bip324/compare/protocol-v0.11.0...protocol-v0.11.1
 [v0.11.0]: https://github.com/rust-bitcoin/bip324/compare/protocol-v0.10.0...protocol-v0.11.0
 [v0.10.0]: https://github.com/rust-bitcoin/bip324/compare/protocol-v0.9.0...protocol-v0.10.0
 [v0.9.0]: https://github.com/rust-bitcoin/bip324/compare/protocol-v0.8.0...protocol-v0.9.0

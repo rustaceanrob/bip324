@@ -22,7 +22,7 @@ fuzz_target!(|data: &[u8]| {
     // This ensures same input always produces same result.
     let seed = [42u8; 32];
     let mut rng = rand::rngs::StdRng::from_seed(seed);
-    let secp = secp256k1::Secp256k1::signing_only();
+    let secp = secp256k1::Secp256k1::new();
 
     // Set up a handshake in the SentKey state.
     let handshake =

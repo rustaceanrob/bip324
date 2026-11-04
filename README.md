@@ -1,21 +1,9 @@
 # BIP-324 Encrypted Transport Protocol
 
-[BIP-324](https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki) describes the V2 encrypted communication protocol for the bitcoin P2P network.
+[BIP-324](https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki) describes the V2 encrypted communication protocol for the bitcoin P2P network. This workspace publishes two crates.
 
-## Motivation
-
-Bitcoin's original P2P protocol, "V1", was designed without any encryption. Even though the data exchanged over the bitcoin P2P network is public to some degree, encrypted communications offers a number of benefits over plaintext communication.
-
-* Internet Service Providers (ISPs) can easily detect and censor plaintext bitcoin communication.
-* Plaintext message tampering, without detection, is trivial for a man in the middle (MitM) attacker.
-* Nefarious actors may associate metadata, such as IP addresses and transaction origins, without explicitly having to connect directly to peers.
-
-BIP-324 - "V2" - encrypted communication protects against the above issues increasing the privacy and censorship-resistance of the bitcoin ecosystem. Any applications communicating with bitcoin nodes, including light clients, should make use of the V2 protocol.
-
-## Crates
-
-* [`protocol`](./protocol) - Exports the `bip324` client library.
-* [`traffic`](./traffic) - Traffic shape hiding layer over the base client.
+* [`bip324`](./protocol): The core library which supports the BIP-324 handshake and cipher session with sans-I/O core, plus sync and async I/O wrappers.
+* [`bip324-traffic`](./traffic): Traffic shape hiding layer over `bip324`, using decoy packets and padding to obscure communication patterns.
 
 ## Contributing
 

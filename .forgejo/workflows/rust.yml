@@ -20,9 +20,10 @@ jobs:
     steps:
       - uses: https://data.forgejo.org/actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
         with:
+          fetch-depth: 0 # Context required for bisectability tests.
           persist-credentials: false
       - uses: https://git.rust-bitcoin.org/rust-bitcoin/rust-bitcoin-maintainer-tools/actions/setup-rbmt@ab53238ea36685e2676e2afc4dadcefbf4c2d643
-      - run: cargo rbmt test --toolchain ${{ matrix.toolchain }} --lockfile ${{ matrix.dep }}
+      - run: cargo rbmt test --toolchain ${{ matrix.toolchain }} --lockfile ${{ matrix.dep }} --baseline ${{ forgejo.event.pull_request.base.sha || forgejo.event.before }}
 
   Lint:
     runs-on: debian-trixie
@@ -50,3 +51,22 @@ jobs:
           persist-credentials: false
       - uses: https://git.rust-bitcoin.org/rust-bitcoin/rust-bitcoin-maintainer-tools/actions/setup-rbmt@ab53238ea36685e2676e2afc4dadcefbf4c2d643
       - run: cargo rbmt integration
+
+  Fuzz:
+    runs-on: debian-trixie
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
+      - uses: https://git.rust-bitcoin.org/rust-bitcoin/rust-bitcoin-maintainer-tools/actions/setup-rbmt@ab53238ea36685e2676e2afc4dadcefbf4c2d643
+      - working-directory: fuzz
+        run: |
+          cargo rbmt tools
+          cargo +$(cargo rbmt toolchains --nightly) fuzz check
+
+  Prerelease:
+    runs-on: debian-trixie
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
+        with:
+          fetch-depth: 0 # History required to diff against the baseline.
+      - uses: https://git.rust-bitcoin.org/rust-bitcoin/rust-bitcoin-maintainer-tools/actions/setup-rbmt@ab53238ea36685e2676e2afc4dadcefbf4c2d643
+      - run: cargo rbmt prerelease --baseline ${{ forgejo.event.pull_request.base.sha || forgejo.event.before }}

@@ -25,14 +25,18 @@ jobs:
       - uses: https://git.rust-bitcoin.org/rust-bitcoin/rust-bitcoin-maintainer-tools/actions/setup-rbmt@ab53238ea36685e2676e2afc4dadcefbf4c2d643
       - run: cargo rbmt test --toolchain ${{ matrix.toolchain }} --lockfile ${{ matrix.dep }} --baseline ${{ forgejo.event.pull_request.base.sha || forgejo.event.before }}
 
-  Lint:
+  Check:
     runs-on: debian-trixie
+    strategy:
+      fail-fast: false
+      matrix:
+        command: [lint, docs]
     steps:
       - uses: https://data.forgejo.org/actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
         with:
           persist-credentials: false
       - uses: https://git.rust-bitcoin.org/rust-bitcoin/rust-bitcoin-maintainer-tools/actions/setup-rbmt@ab53238ea36685e2676e2afc4dadcefbf4c2d643
-      - run: cargo rbmt lint
+      - run: cargo rbmt ${{ matrix.command }}
 
   Format:
     runs-on: debian-trixie

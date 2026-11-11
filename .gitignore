@@ -1,2 +1,5 @@
 /Cargo.lock
+/fuzz/Cargo.lock
+/protocol/bitcoind-tests/Cargo.lock
+/traffic/bitcoind-tests/Cargo.lock
 **/target

@@ -11,6 +11,9 @@ cargo-fuzz = true
 tools.cargo-fuzz = "0.13.2"
 toolchains.nightly = "nightly-2026-10-24"
 
+[package.metadata.rbmt.lock]
+lockfiles = ["minimal"]
+
 [dependencies]
 libfuzzer-sys = "0.4"
 bip324 = { path = "../protocol" }

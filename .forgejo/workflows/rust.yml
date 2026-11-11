@@ -64,7 +64,7 @@ jobs:
       - working-directory: fuzz
         run: |
           cargo rbmt tools
-          cargo +$(cargo rbmt toolchains --nightly) fuzz check
+          cargo rbmt with --lockfile minimal --toolchain nightly -- cargo fuzz check
 
   Prerelease:
     runs-on: debian-trixie

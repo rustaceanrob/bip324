@@ -13,7 +13,7 @@
 //! pre-allocated buffers to reduce stack allocations showed decreased performance.
 //!
 //! * **FSChaCha20 operations** +3.7% overhead with pre-allocated buffers.
-//! * **FSChaCha20Poly1305 operations** +1.0% overhead with pre-allocated buffers.  
+//! * **FSChaCha20Poly1305 operations** +1.0% overhead with pre-allocated buffers.
 
 use chacha20_poly1305::{chacha20::ChaCha20, ChaCha20Poly1305, Key, Nonce};
 use core::fmt;
@@ -26,7 +26,7 @@ const REKEY_INTERVAL: u64 = 224;
 const REKEY_INITIAL_NONCE: [u8; 4] = [0xFF, 0xFF, 0xFF, 0xFF];
 
 /// Errors encrypting and decrypting with [`FSChaCha20Poly1305`].
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Error {
     Decryption(chacha20_poly1305::Error),
 }

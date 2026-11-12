@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+* Upgrade MSRV to 1.74.0.
+* Upgrade `secp256k1` dependency to 0.33.0.
+* Upgrade `bitcoin_hashes` dependency to 1.0.0.
+* Upgrade `chacha20-poly1305` dependency to 0.3.0.
+
 ## [v0.11.1]
 
 * [BREAKING] Fix a fingerprintable v2 handshake: the local ElligatorSwift key encoding was derived deterministically from the public key (an all-zero `rnd32` via `ElligatorSwift::from_pubkey`), so the first 64 bytes of a connection revealed that it came from this crate, allowing a passive observer to identify and block BIP324 traffic. `Handshake::new_with_rng` now requires a `Verification` secp256k1 context instead of `Signing`, since the randomized encoding uses `ElligatorSwift::from_seckey`; `Secp256k1::new()` satisfies both and callers passing `Secp256k1::signing_only()` must switch. The context bound will be removed entirely when upgrading to `secp256k1` 0.33.

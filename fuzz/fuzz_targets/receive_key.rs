@@ -7,7 +7,7 @@
 #![no_main]
 use bip324::{Handshake, Initialized, Role};
 use libfuzzer_sys::fuzz_target;
-use rand::SeedableRng;
+use secp256k1::rand::SeedableRng;
 
 const MAGIC: [u8; 4] = [0xF9, 0xBE, 0xB4, 0xD9];
 
@@ -21,7 +21,7 @@ fuzz_target!(|data: &[u8]| {
     // Use a fixed seed to make the fuzzing deterministic.
     // This ensures same input always produces same result.
     let seed = [42u8; 32];
-    let mut rng = rand::rngs::StdRng::from_seed(seed);
+    let mut rng = secp256k1::rand::rngs::StdRng::from_seed(seed);
     let secp = secp256k1::Secp256k1::new();
 
     // Set up a handshake in the SentKey state.

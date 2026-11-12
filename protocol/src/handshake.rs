@@ -10,7 +10,7 @@
 use core::borrow::Borrow;
 
 use secp256k1::{
-    ellswift::{ElligatorSwift, ElligatorSwiftParty},
+    ellswift::{ElligatorSwift, Party},
     Secp256k1, SecretKey, Verification,
 };
 
@@ -113,7 +113,7 @@ impl Handshake<Initialized> {
     /// Initialize a V2 transport handshake with a remote peer.
     #[cfg(feature = "std")]
     pub fn new(magic: impl Borrow<[u8; 4]>, role: Role) -> Result<Self, Error> {
-        let mut rng = secp256k1::rand::thread_rng();
+        let mut rng = secp256k1::rand::rng();
         let curve = Secp256k1::new();
         Self::new_with_rng(magic, role, &mut rng, &curve)
     }
@@ -123,18 +123,18 @@ impl Handshake<Initialized> {
         magic: impl Borrow<[u8; 4]>,
         role: Role,
         rng: &mut impl FillBytes,
-        curve: &Secp256k1<C>,
+        _curve: &Secp256k1<C>,
     ) -> Result<Self, Error> {
         let mut secret_key_buffer = [0u8; 32];
         rng.fill_bytes(&mut secret_key_buffer);
         debug_assert_ne!([0u8; 32], secret_key_buffer);
-        let sk = SecretKey::from_slice(&secret_key_buffer)?;
+        let sk = SecretKey::from_secret_bytes(secret_key_buffer)?;
         // Randomize the ElligatorSwift encoding. Without this, the 64-byte
         // encoding is a deterministic function of the public key and the
         // bytestream is trivially distinguishable from uniform random bytes.
         let mut ellswift_rand = [0u8; 32];
         rng.fill_bytes(&mut ellswift_rand);
-        let es = ElligatorSwift::from_seckey(curve, sk, Some(ellswift_rand));
+        let es = ElligatorSwift::from_seckey(sk, Some(ellswift_rand));
 
         let point = EcdhPoint {
             secret_key: sk,
@@ -250,13 +250,13 @@ impl<'a> Handshake<SentKey<'a>> {
                 self.state.point.elligator_swift,
                 their_ellswift,
                 self.state.point.secret_key,
-                ElligatorSwiftParty::A,
+                Party::Initiator,
             ),
             Role::Responder => (
                 their_ellswift,
                 self.state.point.elligator_swift,
                 self.state.point.secret_key,
-                ElligatorSwiftParty::B,
+                Party::Responder,
             ),
         };
 
@@ -924,9 +924,9 @@ mod tests {
         let encoding: [u8; NUM_ELLIGATOR_SWIFT_BYTES] = buffer[..].try_into().unwrap();
         let pk = secp256k1::PublicKey::from_ellswift(ElligatorSwift::from_array(encoding));
 
-        // `ElligatorSwift::from_pubkey` is the `rnd32 = [0u8; 32]` case.
+        // `ElligatorSwift::from_pubkey_with_rnd` with `rnd32 = [0u8; 32]` is the old `from_pubkey` behavior.
         assert_ne!(
-            ElligatorSwift::from_pubkey(pk).to_array(),
+            ElligatorSwift::from_pubkey_with_rnd(pk, [0u8; 32]).to_array(),
             encoding,
             "handshake emitted the deterministic all-zero-rnd32 encoding"
         );

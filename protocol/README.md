@@ -14,6 +14,6 @@ The library is designed with a bare `no_std` and *Sans I/O* interface to keep it
 
 ## Minimum Supported Rust Version (MSRV)
 
-This crate has a baseline MSRV of **1.63.0**.
+This crate has a baseline MSRV of **1.74.0**.
 
 However, the effective MSRV may be higher depending on the specific versions of dependencies selected by the caller. Currently, tokio is known to affect MSRV when using newer versions with the `tokio` feature flag, but other dependencies may also impact the effective MSRV in the future.

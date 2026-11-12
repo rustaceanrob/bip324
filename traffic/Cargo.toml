@@ -6,7 +6,7 @@ edition = "2021"
 license = "CC0-1.0"
 description = "Traffic shape hiding layer for BIP-324 library"
 repository = "https://git.rust-bitcoin.org/rust-bitcoin/bip324"
-rust-version = "1.63.0"
+rust-version = "1.74.0"
 
 [features]
 default = []
@@ -16,3 +16,14 @@ tokio = ["dep:tokio", "bip324/tokio"]
 bip324 = { version = "0.11.0", path = "../protocol" }
 rand = { version = "0.8" }
 tokio = { version = "1", features = ["sync", "time", "rt", "macros"], optional = true }
+
+[package.metadata.rbmt.lint]
+# `syn` v2 and v3 can't unify: v3 comes from tokio-macros (via this crate's
+# `tokio` feature with the `macros` sub-feature), while v2 comes from
+# zerocopy-derive (transitive via rand 0.8 -> rand_chacha -> ppv-lite86).
+# Both are proc-macro deps so the duplicate is harmless at runtime.
+#
+# Future fixes:
+# - Upgrade rand to 0.10 (drops ppv-lite86 for chacha20), needs MSRV >= 1.85
+# - If zerocopy-derive ever upgrades its syn dependency to v3
+allowed_duplicates = ["syn"]

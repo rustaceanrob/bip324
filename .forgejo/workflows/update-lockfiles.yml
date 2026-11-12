@@ -15,10 +15,31 @@ jobs:
         run: |
           git config user.name "RBMT Bot"
           git config user.email "bot@example.com"
-      - name: Update lockfiles
+      - name: Update lockfiles and commit
         run: |
           cargo rbmt lock
           if git add . && git commit -m "Update lockfiles"; then
+            echo "LOCKFILE_UPDATE=true" >> $FORGEJO_ENV
+          fi
+      - name: Update fuzz lockfiles and commit
+        working-directory: fuzz
+        run: |
+          cargo rbmt lock
+          if git add . && git commit -m "fuzz: update lockfiles"; then
+            echo "LOCKFILE_UPDATE=true" >> $FORGEJO_ENV
+          fi
+      - name: Update protocol/bitcoind-tests lockfiles and commit
+        working-directory: protocol/bitcoind-tests
+        run: |
+          cargo rbmt lock
+          if git add . && git commit -m "bitcoind-tests: update lockfiles"; then
+            echo "LOCKFILE_UPDATE=true" >> $FORGEJO_ENV
+          fi
+      - name: Update traffic/bitcoind-tests lockfiles and commit
+        working-directory: traffic/bitcoind-tests
+        run: |
+          cargo rbmt lock
+          if git add . && git commit -m "bitcoind-tests: update lockfiles"; then
             echo "LOCKFILE_UPDATE=true" >> $FORGEJO_ENV
           fi
       - name: Create pull request

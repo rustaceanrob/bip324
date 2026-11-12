@@ -7,7 +7,11 @@ publish = false
 [workspace]
 
 [package.metadata.rbmt.toolchains]
+nightly = "nightly-2026-10-24"
 stable = "1.99.1"
+
+[package.metadata.rbmt.lock]
+lockfiles = ["minimal"]
 
 [features]
 "latest" = ["bitcoind/30_2"]
@@ -15,6 +19,8 @@ stable = "1.99.1"
 [dependencies]
 bip324-traffic = { path = "..", features = ["tokio"] }
 bip324 = { path = "../../protocol", features = ["tokio"] }
+# `bitcoind` (via `corepc-regtest-client`) uses `log::debug!` but only requires `log = "0.4"`.
+log = "0.4.8"
 bitcoind = { version = "0.43.2", features = ["download"] }
 bitcoin = { git = "https://github.com/rust-bitcoin/rust-bitcoin", rev = "16cc257c3695dea0e7301a5fa9cab44b8ed60598" }
 p2p = { package = "bitcoin-p2p-messages", git = "https://github.com/rust-bitcoin/rust-bitcoin", rev = "16cc257c3695dea0e7301a5fa9cab44b8ed60598" }

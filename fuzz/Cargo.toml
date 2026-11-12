@@ -17,8 +17,7 @@ lockfiles = ["minimal"]
 [dependencies]
 libfuzzer-sys = "0.4"
 bip324 = { path = "../protocol" }
-rand = "0.8"
-secp256k1 = "0.29"
+secp256k1 = "0.33"
 
 [[bin]]
 name = "receive_garbage"

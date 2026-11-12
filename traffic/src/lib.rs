@@ -335,7 +335,7 @@ struct TrafficShaper<R = rand::rngs::StdRng> {
 impl TrafficShaper {
     /// Create a new traffic shaper with the given configuration and default RNG.
     fn new(config: TrafficConfig) -> Self {
-        Self::with_rng(config, rand::rngs::StdRng::from_entropy())
+        Self::with_rng(config, rand::rngs::StdRng::from_os_rng())
     }
 }
 
@@ -363,7 +363,7 @@ where
         let garbage = match self.config.padding_strategy {
             PaddingStrategy::Disabled => None,
             PaddingStrategy::Random => {
-                let size = self.rng.gen_range(0..=MAX_NUM_GARBAGE_BYTES);
+                let size = self.rng.random_range(0..=MAX_NUM_GARBAGE_BYTES);
                 let mut garbage = vec![0u8; size];
                 self.rng.fill_bytes(&mut garbage);
                 stats.as_ref().record_write(garbage.len());
@@ -374,11 +374,11 @@ where
         let decoys = match self.config.decoy_strategy {
             DecoyStrategy::Disabled => None,
             DecoyStrategy::Random => {
-                let num_decoys = self.rng.gen_range(0..=3);
+                let num_decoys = self.rng.random_range(0..=3);
                 let mut decoys = Vec::with_capacity(num_decoys);
 
                 for _ in 0..num_decoys {
-                    let size = self.rng.gen_range(1..=MAX_DECOY_SIZE_BYTES);
+                    let size = self.rng.random_range(1..=MAX_DECOY_SIZE_BYTES);
                     let mut contents = vec![0u8; size];
                     self.rng.fill_bytes(&mut contents);
                     stats.as_ref().record_write(contents.len());
@@ -410,11 +410,12 @@ where
         match &mut self.config.decoy_strategy {
             DecoyStrategy::Disabled => None,
             DecoyStrategy::Random => {
-                if self.rng.gen_range(0..100) < 85 {
+                if self.rng.random_range(0..100) < 85 {
                     return None;
                 }
 
-                let decoy = Payload::decoy(vec![0; self.rng.gen_range(1..=MAX_DECOY_SIZE_BYTES)]);
+                let decoy =
+                    Payload::decoy(vec![0; self.rng.random_range(1..=MAX_DECOY_SIZE_BYTES)]);
                 stats.as_ref().record_write(decoy.contents().len());
                 Some(decoy)
             }
@@ -445,7 +446,8 @@ where
         match &mut self.config.padding_strategy {
             PaddingStrategy::Disabled => None,
             PaddingStrategy::Random => {
-                let decoy = Payload::decoy(vec![0; self.rng.gen_range(1..=MAX_DECOY_SIZE_BYTES)]);
+                let decoy =
+                    Payload::decoy(vec![0; self.rng.random_range(1..=MAX_DECOY_SIZE_BYTES)]);
                 stats.as_ref().record_write(decoy.contents().len());
                 Some(decoy)
             }
@@ -456,7 +458,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::rngs::mock::StepRng;
+    use rand::rngs::SmallRng;
+    use rand::SeedableRng;
     use std::sync::Arc;
 
     #[test]
@@ -488,7 +491,7 @@ mod tests {
     fn test_traffic_shaper_handshake_disabled() {
         let config = TrafficConfig::new();
         let stats = AtomicTrafficStats::new();
-        let mut shaper = TrafficShaper::with_rng(config, StepRng::new(0, 1));
+        let mut shaper = TrafficShaper::with_rng(config, SmallRng::seed_from_u64(0));
 
         let (garbage, decoys) = shaper.handshake(&stats);
         assert!(garbage.is_none());
@@ -499,7 +502,7 @@ mod tests {
     fn test_traffic_shaper_handshake_with_padding() {
         let config = TrafficConfig::new().with_padding_strategy(PaddingStrategy::Random);
         let stats = AtomicTrafficStats::new();
-        let mut shaper = TrafficShaper::with_rng(config, StepRng::new(1, 1));
+        let mut shaper = TrafficShaper::with_rng(config, SmallRng::seed_from_u64(0));
 
         let (garbage, decoys) = shaper.handshake(&stats);
         assert!(garbage.is_some());
@@ -513,7 +516,7 @@ mod tests {
     fn test_traffic_shaper_handshake_with_decoys() {
         let config = TrafficConfig::new().with_decoy_strategy(DecoyStrategy::Random);
         let stats = Arc::new(AtomicTrafficStats::new());
-        let mut shaper = TrafficShaper::with_rng(config, StepRng::new(1, 1));
+        let mut shaper = TrafficShaper::with_rng(config, SmallRng::seed_from_u64(0));
 
         let (garbage, decoys) = shaper.handshake(stats.clone());
         assert!(garbage.is_none());
@@ -524,7 +527,7 @@ mod tests {
     fn test_traffic_shaper_padding_disabled() {
         let config = TrafficConfig::new(); // Padding disabled by default
         let stats = AtomicTrafficStats::new();
-        let mut shaper = TrafficShaper::with_rng(config, StepRng::new(0, 1));
+        let mut shaper = TrafficShaper::with_rng(config, SmallRng::seed_from_u64(0));
 
         let genuine = Payload::genuine(vec![1, 2, 3]);
         let padding = shaper.pad(&genuine, &stats);

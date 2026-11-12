@@ -142,7 +142,7 @@ use core::{borrow::Borrow, fmt};
 use bitcoin_hashes::{hkdf, sha256, Hkdf};
 use secp256k1::{
     self,
-    ellswift::{ElligatorSwift, ElligatorSwiftParty},
+    ellswift::{ElligatorSwift, Party},
     SecretKey,
 };
 
@@ -177,7 +177,7 @@ const MAX_PACKET_SIZE_FOR_ALLOCATION: usize = 4000014;
 const VERSION_CONTENT: [u8; 0] = [];
 
 /// Errors encountered throughout the lifetime of a V2 connection.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Error {
     /// The encrypted text does not contain enough information to decrypt.
     CiphertextTooSmall,
@@ -338,7 +338,7 @@ impl SessionKeyMaterial {
     /// * `a` - First party's ElligatorSwift public key.
     /// * `b` - Second party's ElligatorSwift public key.
     /// * `secret` - The secret key of the party calling this method.
-    /// * `party` - Whether the caller is party A or B in the ECDH.
+    /// * `party` - Whether the caller is the initiator or responder.
     /// * `network` - The Bitcoin network for key derivation.
     ///
     /// # Returns
@@ -352,18 +352,17 @@ impl SessionKeyMaterial {
         a: ElligatorSwift,
         b: ElligatorSwift,
         secret: SecretKey,
-        party: ElligatorSwiftParty,
+        party: Party,
         magic: impl Borrow<[u8; 4]>,
     ) -> Result<Self, Error> {
-        let data = "bip324_ellswift_xonly_ecdh".as_bytes();
-        let ecdh_sk = ElligatorSwift::shared_secret(a, b, secret, party, Some(data));
+        let ecdh_sk = ElligatorSwift::shared_secret(a, b, secret, party);
 
         let ikm_salt = b"bitcoin_v2_shared_secret"; // 24 bytes
         let mut salt = [0u8; 28];
         salt[..24].copy_from_slice(ikm_salt);
         salt[24..].copy_from_slice(magic.borrow());
 
-        let hk = Hkdf::<sha256::Hash>::new(salt.as_slice(), ecdh_sk.as_secret_bytes());
+        let hk = Hkdf::<sha256::HashEngine>::new(salt.as_slice(), ecdh_sk.as_secret_bytes());
         let mut session_id = [0u8; 32];
         let session_info = "session_id".as_bytes();
         hk.expand(session_info, &mut session_id)?;
@@ -823,7 +822,7 @@ mod tests {
     use super::*;
     use core::str::FromStr;
     use hex::prelude::*;
-    use secp256k1::ellswift::{ElligatorSwift, ElligatorSwiftParty};
+    use secp256k1::ellswift::{ElligatorSwift, Party};
     use secp256k1::rand::Rng;
     use secp256k1::SecretKey;
     use std::vec;
@@ -832,7 +831,7 @@ mod tests {
     const MAGIC: [u8; 4] = [0xF9, 0xBE, 0xB4, 0xD9];
 
     fn gen_garbage(garbage_len: u32, rng: &mut impl Rng) -> Vec<u8> {
-        let buffer: Vec<u8> = (0..garbage_len).map(|_| rng.gen()).collect();
+        let buffer: Vec<u8> = (0..garbage_len).map(|_| rng.random()).collect();
         buffer
     }
 
@@ -847,7 +846,7 @@ mod tests {
             elliswift_alice,
             elliswift_bob,
             alice,
-            ElligatorSwiftParty::A,
+            Party::Initiator,
             MAGIC,
         )
         .unwrap();
@@ -903,7 +902,7 @@ mod tests {
             elliswift_alice,
             elliswift_bob,
             alice,
-            ElligatorSwiftParty::A,
+            Party::Initiator,
             MAGIC,
         )
         .unwrap();
@@ -960,7 +959,7 @@ mod tests {
             elliswift_alice,
             elliswift_bob,
             alice,
-            ElligatorSwiftParty::A,
+            Party::Initiator,
             MAGIC,
         )
         .unwrap();
@@ -993,7 +992,7 @@ mod tests {
             elliswift_alice,
             elliswift_bob,
             alice,
-            ElligatorSwiftParty::A,
+            Party::Initiator,
             MAGIC,
         )
         .unwrap();
@@ -1008,7 +1007,7 @@ mod tests {
 
     #[test]
     fn test_fuzz_packets() {
-        let mut rng = bitcoin::secp256k1::rand::thread_rng();
+        let mut rng = secp256k1::rand::rng();
         let alice =
             SecretKey::from_str("61062ea5071d800bbfd59e2e8b53d47d194b095ae5a4df04936b49772ef0d4d7")
                 .unwrap();
@@ -1018,7 +1017,7 @@ mod tests {
             elliswift_alice,
             elliswift_bob,
             alice,
-            ElligatorSwiftParty::A,
+            Party::Initiator,
             MAGIC,
         )
         .unwrap();
@@ -1075,7 +1074,7 @@ mod tests {
 
     #[test]
     fn test_additional_authenticated_data() {
-        let mut rng = bitcoin::secp256k1::rand::thread_rng();
+        let mut rng = secp256k1::rand::rng();
         let alice =
             SecretKey::from_str("61062ea5071d800bbfd59e2e8b53d47d194b095ae5a4df04936b49772ef0d4d7")
                 .unwrap();
@@ -1085,7 +1084,7 @@ mod tests {
             elliswift_alice,
             elliswift_bob,
             alice,
-            ElligatorSwiftParty::A,
+            Party::Initiator,
             MAGIC,
         )
         .unwrap();
@@ -1124,7 +1123,7 @@ mod tests {
 
     #[test]
     fn test_vector_1() {
-        let mut rng = bitcoin::secp256k1::rand::thread_rng();
+        let mut rng = secp256k1::rand::rng();
         let alice =
             SecretKey::from_str("61062ea5071d800bbfd59e2e8b53d47d194b095ae5a4df04936b49772ef0d4d7")
                 .unwrap();
@@ -1134,7 +1133,7 @@ mod tests {
             elliswift_alice,
             elliswift_bob,
             alice,
-            ElligatorSwiftParty::A,
+            Party::Initiator,
             MAGIC,
         )
         .unwrap();
@@ -1187,7 +1186,7 @@ mod tests {
             elliswift_bob,
             elliswift_alice,
             alice,
-            ElligatorSwiftParty::B,
+            Party::Responder,
             MAGIC,
         )
         .unwrap();
@@ -1234,7 +1233,7 @@ mod tests {
             elliswift_alice,
             elliswift_bob,
             alice,
-            ElligatorSwiftParty::A,
+            Party::Initiator,
             MAGIC,
         )
         .unwrap();
@@ -1262,7 +1261,7 @@ mod tests {
             elliswift_bob,
             elliswift_alice,
             alice,
-            ElligatorSwiftParty::B,
+            Party::Responder,
             MAGIC,
         )
         .unwrap();
@@ -1305,7 +1304,7 @@ mod tests {
             elliswift_alice,
             elliswift_bob,
             alice,
-            ElligatorSwiftParty::A,
+            Party::Initiator,
             MAGIC,
         )
         .unwrap();
@@ -1341,7 +1340,7 @@ mod tests {
             elliswift_bob,
             elliswift_alice,
             alice,
-            ElligatorSwiftParty::B,
+            Party::Responder,
             MAGIC,
         )
         .unwrap();
@@ -1382,7 +1381,7 @@ mod tests {
             elliswift_alice,
             elliswift_bob,
             alice,
-            ElligatorSwiftParty::A,
+            Party::Initiator,
             MAGIC,
         )
         .unwrap();

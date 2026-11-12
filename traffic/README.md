@@ -12,7 +12,7 @@ A traffic analysis resistance layer for BIP-324 encrypted bitcoin connections. D
 
 ## Minimum Supported Rust Version (MSRV)
 
-This crate inherits the MSRV from the `bip324` protocol crate, which is **1.63.0**.
+This crate inherits the MSRV from the `bip324` protocol crate, which is **1.74.0**.
 
 When using the `tokio` feature, the effective MSRV may be higher depending on the tokio version used.
 

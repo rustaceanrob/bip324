@@ -7,7 +7,7 @@ license = "CC0-1.0"
 description = "Encrypted transport for the bitcoin P2P protocol as specified by BIP 324"
 repository = "https://git.rust-bitcoin.org/rust-bitcoin/bip324"
 readme = "README.md"
-rust-version = "1.63.0"
+rust-version = "1.74.0"
 
 [features]
 default = ["std"]
@@ -16,7 +16,7 @@ tokio = ["std", "dep:tokio"]
 std = ["secp256k1/rand-std", "bitcoin_hashes/std", "chacha20-poly1305/std"]
 
 [dependencies]
-# The tokio feature may increase the MSRV beyond 1.63.0
+# The tokio feature may increase the MSRV beyond 1.74.0
 # depending on which version of tokio is selected by the caller.
 tokio = { version = "1", default-features = false, optional = true, features = ["io-util"] }
 secp256k1 = { version = "0.29.0", default-features = false }

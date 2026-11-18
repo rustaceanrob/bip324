@@ -21,7 +21,7 @@ std = ["secp256k1/rand", "secp256k1/std", "bitcoin_hashes/std", "chacha20-poly13
 tokio = { version = "1", default-features = false, optional = true, features = ["io-util"] }
 secp256k1 = { version = "0.33.0", default-features = false }
 bitcoin_hashes = { version = "1.0.0", default-features = false }
-chacha20-poly1305 = { version = "0.3.0", default-features = false }
+chacha20-poly1305 = { git = "https://github.com/rustaceanrob/rust-bitcoin", branch = "nov-17-erase", default-features = false }
 
 [dev-dependencies]
 bitcoin = { git = "https://github.com/rust-bitcoin/rust-bitcoin", rev = "16cc257c3695dea0e7301a5fa9cab44b8ed60598" }

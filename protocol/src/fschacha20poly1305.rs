@@ -87,7 +87,7 @@ impl FSChaCha20Poly1305 {
             rekey_nonce[4..].copy_from_slice(&self.nonce()[4..]);
 
             let mut plaintext = [0u8; 32];
-            let cipher = ChaCha20Poly1305::new(self.key, Nonce::new(rekey_nonce));
+            let cipher = ChaCha20Poly1305::new(self.key.clone(), Nonce::new(rekey_nonce));
             cipher.encrypt(&mut plaintext, Some(aad));
             self.key = Key::new(plaintext);
         }
@@ -106,7 +106,7 @@ impl FSChaCha20Poly1305 {
     ///
     /// The 16-byte authentication tag.
     pub fn encrypt(&mut self, aad: &[u8], content: &mut [u8]) -> [u8; 16] {
-        let cipher = ChaCha20Poly1305::new(self.key, Nonce::new(self.nonce()));
+        let cipher = ChaCha20Poly1305::new(self.key.clone(), Nonce::new(self.nonce()));
 
         let tag = cipher.encrypt(content, Some(aad));
 
@@ -123,7 +123,7 @@ impl FSChaCha20Poly1305 {
     /// * `tag`     - 16-byte authentication tag.
     /// * `aad`     - Optional associated authenticated data covered by the authentication tag.
     pub fn decrypt(&mut self, aad: &[u8], content: &mut [u8], tag: [u8; 16]) -> Result<(), Error> {
-        let cipher = ChaCha20Poly1305::new(self.key, Nonce::new(self.nonce()));
+        let cipher = ChaCha20Poly1305::new(self.key.clone(), Nonce::new(self.nonce()));
 
         cipher
             .decrypt(content, tag, Some(aad))
@@ -142,7 +142,8 @@ impl FSChaCha20Poly1305 {
 /// implicitly authenticated by the message packets.
 #[derive(Clone)]
 pub struct FSChaCha20 {
-    key: Key,
+    /// The key and nonce only change on a re-key, so the cipher is held across chunks.
+    cipher: ChaCha20,
     block_counter: u32,
     chunk_counter: u32,
 }
@@ -150,27 +151,31 @@ pub struct FSChaCha20 {
 impl FSChaCha20 {
     pub fn new(key: [u8; 32]) -> Self {
         FSChaCha20 {
-            key: Key::new(key),
+            cipher: Self::cipher(Key::new(key), 0),
             block_counter: 0,
             chunk_counter: 0,
         }
     }
 
+    /// Construct the cipher for a given re-key epoch.
+    fn cipher(key: Key, rekey_counter: u32) -> ChaCha20 {
+        let mut nonce = [0u8; 12];
+        nonce[4..8].copy_from_slice(&rekey_counter.to_le_bytes());
+        ChaCha20::new(key, Nonce::new(nonce), 0)
+    }
+
     /// Encrypt or decrypt the 3-byte length encodings.
     pub fn crypt(&mut self, chunk: &mut [u8; LENGTH_BYTES as usize]) {
-        let counter_mod = (self.chunk_counter / REKEY_INTERVAL as u32).to_le_bytes();
-        let mut nonce = [0u8; 12];
-        nonce[4..8].copy_from_slice(&counter_mod);
-        let mut cipher = ChaCha20::new(self.key, Nonce::new(nonce), 0);
-        cipher.seek(self.block_counter);
-        cipher.apply_keystream(chunk);
+        self.cipher.seek(self.block_counter);
+        self.cipher.apply_keystream(chunk);
         self.block_counter += LENGTH_BYTES;
         if (self.chunk_counter + 1) % REKEY_INTERVAL as u32 == 0 {
             let mut key_buffer = [0u8; 32];
-            cipher.seek(self.block_counter);
-            cipher.apply_keystream(&mut key_buffer);
+            self.cipher.seek(self.block_counter);
+            self.cipher.apply_keystream(&mut key_buffer);
             self.block_counter = 0;
-            self.key = Key::new(key_buffer);
+            let rekey_counter = (self.chunk_counter + 1) / REKEY_INTERVAL as u32;
+            self.cipher = Self::cipher(Key::new(key_buffer), rekey_counter);
         }
         self.chunk_counter += 1;
     }

@@ -380,8 +380,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "chacha20-poly1305"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d5409fc33bb912163cb13265153fe1a51dc25337a3ea1e94404a968e3bc3010"
+source = "git+https://github.com/rustaceanrob/rust-bitcoin?branch=nov-17-erase#4d7fad27da4810263aa28b117fbcb0f3438f2cff"
 
 [[package]]
 name = "corepc-regtest-client"
